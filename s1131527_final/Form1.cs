@@ -16,7 +16,10 @@ namespace s1131527_final
     {
         private List<Record> allRecords = new List<Record>();
 
+        private List<PlanTransaction> planTransactions = new List<PlanTransaction>();
+
         private string defaultFilePath = Path.Combine(Application.StartupPath, "data.txt");
+        private string planFilePath = Path.Combine(Application.StartupPath, "plan_data.txt");
 
         public Form1()
         {
@@ -25,17 +28,22 @@ namespace s1131527_final
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            cmbCategory.SelectedIndex = 0; 
+            cmbCategory.SelectedIndex = 0;
             cmbFilterCategory.SelectedIndex = 0;
 
+            if (cmbPlanType != null && cmbPlanType.Items.Count > 0) cmbPlanType.SelectedIndex = 0;
+            if (cmbPlanCategory != null && cmbPlanCategory.Items.Count > 0) cmbPlanCategory.SelectedIndex = 0;
+
             LoadDataFromFile(defaultFilePath);
+            LoadPlanFromFile(planFilePath); 
             UpdateAllUI();
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
         {
             btnAdd.Enabled = false;
-            try {
+            try
+            {
                 if (string.IsNullOrWhiteSpace(txtAmount.Text))
                 {
                     MessageBox.Show("請輸入金額！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -64,7 +72,68 @@ namespace s1131527_final
                 MessageBox.Show("記帳成功！", "系統提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             finally { btnAdd.Enabled = true; }
-         
+        }
+
+
+        private void btnPlanAdd_Click(object sender, EventArgs e)
+        {
+            if (cmbPlanType.SelectedItem == null || cmbPlanCategory.SelectedItem == null)
+            {
+                MessageBox.Show("請選擇交易類型與分類！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtPlanAmount.Text))
+            {
+                MessageBox.Show("請輸入計畫金額！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!int.TryParse(txtPlanAmount.Text, out int amount) || amount <= 0)
+            {
+                MessageBox.Show("計畫金額必須是大於 0 的正整數！", "輸入錯誤", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            PlanTransaction newPlan = new PlanTransaction
+            {
+                Type = cmbPlanType.SelectedItem.ToString(),
+                Category = cmbPlanCategory.SelectedItem.ToString(),
+                Amount = amount,
+                Note = txtPlanNote.Text.Trim()
+            };
+
+            planTransactions.Add(newPlan);
+            SavePlanToFile(planFilePath); 
+            txtPlanAmount.Clear();
+            txtPlanNote.Clear();
+            UpdateAllUI(); 
+            MessageBox.Show("每月固定計畫新增成功！", "系統提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void dgvPlan_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && dgvPlan.Columns[e.ColumnIndex].HeaderText == "刪除")
+            {
+                DialogResult dialog = MessageBox.Show("確定要刪除這筆每月固定計畫嗎？", "刪除確認", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (dialog == DialogResult.Yes)
+                {
+                    string type = dgvPlan.Rows[e.RowIndex].Cells[0].Value.ToString();
+                    string category = dgvPlan.Rows[e.RowIndex].Cells[1].Value.ToString();
+                    string amountStr = dgvPlan.Rows[e.RowIndex].Cells[2].Value.ToString().Replace("$", "").Replace(",", "");
+                    int amount = int.Parse(amountStr);
+                    string note = dgvPlan.Rows[e.RowIndex].Cells[3].Value.ToString();
+
+                    var target = planTransactions.FirstOrDefault(p => p.Type == type && p.Category == category && p.Amount == amount && p.Note == note);
+                    if (target != null)
+                    {
+                        planTransactions.Remove(target);
+                        SavePlanToFile(planFilePath); 
+                        UpdateAllUI();
+                        MessageBox.Show("固定計畫已成功刪除！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
         }
 
         private void UpdateAllUI()
@@ -82,12 +151,17 @@ namespace s1131527_final
 
             lblBalance.ForeColor = balance >= 0 ? System.Drawing.Color.Black : System.Drawing.Color.Red;
 
-            RefreshDataGridView(dgvQuick, allRecords.OrderByDescending(r => r.Date).Take(10).ToList()); // 首頁只顯示最新10筆
-            RefreshDataGridView(dgvHistory, allRecords); // 歷史頁顯示全部
+            RefreshDataGridView(dgvQuick, allRecords.OrderByDescending(r => r.Date).Take(10).ToList());
+            RefreshDataGridView(dgvHistory, allRecords);
+
+            RefreshPlanDataGridView();
+
+            RenderCharts();
         }
 
         private void RefreshDataGridView(DataGridView dgv, List<Record> records)
         {
+            if (dgv == null) return;
             dgv.Rows.Clear();
             foreach (var r in records)
             {
@@ -99,6 +173,16 @@ namespace s1131527_final
                 {
                     dgv.Rows.Add(r.Date.ToString("yyyy/MM/dd"), r.Category, $"${r.Amount:N0}", r.Note);
                 }
+            }
+        }
+
+        private void RefreshPlanDataGridView()
+        {
+            if (dgvPlan == null) return;
+            dgvPlan.Rows.Clear();
+            foreach (var p in planTransactions)
+            {
+                dgvPlan.Rows.Add(p.Type, p.Category, $"${p.Amount:N0}", p.Note, "❌ 刪除");
             }
         }
 
@@ -150,13 +234,14 @@ namespace s1131527_final
                     if (target != null)
                     {
                         allRecords.Remove(target);
-                        SaveDataToFile(defaultFilePath); 
-                        UpdateAllUI(); 
+                        SaveDataToFile(defaultFilePath);
+                        UpdateAllUI();
                         MessageBox.Show("紀錄已成功刪除！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 }
             }
         }
+
         private void SaveDataToFile(string filePath)
         {
             try
@@ -178,7 +263,6 @@ namespace s1131527_final
         private void LoadDataFromFile(string filePath)
         {
             if (!File.Exists(filePath)) return;
-
             try
             {
                 allRecords.Clear();
@@ -206,6 +290,54 @@ namespace s1131527_final
             }
         }
 
+        private void SavePlanToFile(string filePath)
+        {
+            try
+            {
+                using (StreamWriter sw = new StreamWriter(filePath, false, Encoding.UTF8))
+                {
+                    foreach (var p in planTransactions)
+                    {
+                        sw.WriteLine($"{p.Type},{p.Category},{p.Amount},{p.Note}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"計檔案劃存檔失敗：{ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // 💡 新增：每月固定計畫檔案讀取功能
+        private void LoadPlanFromFile(string filePath)
+        {
+            if (!File.Exists(filePath)) return;
+            try
+            {
+                planTransactions.Clear();
+                string[] lines = File.ReadAllLines(filePath, Encoding.UTF8);
+                foreach (string line in lines)
+                {
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    string[] parts = line.Split(',');
+                    if (parts.Length >= 4)
+                    {
+                        planTransactions.Add(new PlanTransaction
+                        {
+                            Type = parts[0],
+                            Category = parts[1],
+                            Amount = int.Parse(parts[2]),
+                            Note = parts[3]
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"讀取計畫檔案失敗：{ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void btnImport_Click(object sender, EventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -213,7 +345,7 @@ namespace s1131527_final
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 LoadDataFromFile(openFileDialog.FileName);
-                SaveDataToFile(defaultFilePath); 
+                SaveDataToFile(defaultFilePath);
                 UpdateAllUI();
                 MessageBox.Show("外部歷史帳目匯入成功！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -231,10 +363,7 @@ namespace s1131527_final
             }
         }
 
-        private void lblExpense_Click(object sender, EventArgs e)
-        {
-
-        }
+        private void lblExpense_Click(object sender, EventArgs e) { }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -246,57 +375,40 @@ namespace s1131527_final
         {
             if (chartPie == null) return;
 
-            // 1. 初始化圖表
             chartPie.Series.Clear();
             chartPie.Titles.Clear();
 
-            // 設定大標題（自訂字型與大小）
             Title title = chartPie.Titles.Add("本月支出分類比例");
             title.Font = new Font("Microsoft JhengHei", 12, FontStyle.Bold);
 
-            // 2. 篩選本月支出資料（排除「收入」）
             var thisMonthExpenses = allRecords
                 .Where(r => r.Date.Year == DateTime.Today.Year && r.Date.Month == DateTime.Today.Month && r.Category != "收入")
                 .GroupBy(r => r.Category)
                 .Select(g => new { Category = g.Key, Total = g.Sum(r => r.Amount) })
                 .ToList();
 
-            // 💡 防呆機制：如果本月完全沒有記任何一筆支出，就不要畫圖，改顯示提示文字
             if (thisMonthExpenses.Count == 0)
             {
                 chartPie.Titles.Add("本月尚無支出紀錄");
                 return;
             }
 
-            // 3. 建立並設定 Pie Series
             Series pieSeries = new Series("ExpensePie")
             {
                 ChartType = SeriesChartType.Pie,
-                Font = new Font("Microsoft JhengHei", 10, FontStyle.Regular) // 設定扇形上文字的字型
+                Font = new Font("Microsoft JhengHei", 10, FontStyle.Regular)
             };
 
-            // 4. 將資料灌入圖表
             foreach (var item in thisMonthExpenses)
             {
                 pieSeries.Points.AddXY(item.Category, item.Total);
             }
 
-            // 5. 🌟 讓圓餅圖強大又美觀的關鍵設定 🌟
-
-            // 顯示標籤文字 (預設會顯示金額數字)
             pieSeries.IsValueShownAsLabel = true;
-
-            // 改成顯示「百分比」而非單純數字 (例如：食 45%)
-            // #VALX 代表 X軸名稱(分類)，#PERCENT 代表該區塊所佔百分比
             pieSeries.Label = "#VALX #PERCENT{P1}";
-
-            // 讓標籤字體彈出到圓餅圖外面（避免分類太多時，字體全部擠在圓餅圖裡面重疊）
             pieSeries["PieLabelStyle"] = "Outside";
-
-            // 連接圓餅圖與外部文字的拉線顏色
             pieSeries["PieLineColor"] = "Black";
 
-            // 把設定好的 Series 加回圖表
             chartPie.Series.Add(pieSeries);
         }
     }
@@ -307,5 +419,13 @@ namespace s1131527_final
         public string Category { get; set; }
         public int Amount { get; set; }
         public string Note { get; set; }
+    }
+
+    public class PlanTransaction
+    {
+        public string Type { get; set; }      
+        public string Category { get; set; }  
+        public int Amount { get; set; }       
+        public string Note { get; set; }       
     }
 }
