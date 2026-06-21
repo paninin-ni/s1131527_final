@@ -5,6 +5,8 @@
 
 
 <img width="380" height="276" alt="Image" src="https://github.com/user-attachments/assets/c2101a1f-b350-43d0-9059-7150bb05648f" />
+
+
 ### 快速記帳頁面（每日消費即時登錄）:
 > 1. 本月財務儀表板
 > * 本月總收入：自動統計並顯示當月累積的所有收入總和
@@ -19,6 +21,8 @@
 
 
 <img width="393" height="292" alt="Image" src="https://github.com/user-attachments/assets/2693c9f1-32c7-4788-881c-ccacb024cf4b" />
+
+
 ### 歷史明細頁面（資料篩選與檔案管理）:
 > 1. 歷史資料條件篩選
 > * 時間區間：可自由調整「開始日期」與「結束日期」，鎖定特定範圍
@@ -32,6 +36,8 @@
 
 
 <img width="366" height="271" alt="Image" src="https://github.com/user-attachments/assets/3a978929-e91f-4893-bb51-9189b8a5cae2" />
+
+
 ### 統計計畫頁面（每月定期固定交易管理）:
 > 1. 本月支出分析圓餅圖
 > * 系統自動彙整「當月真實支出」與「當月生效的固定計畫支出」，即時渲染成圓餅圖
