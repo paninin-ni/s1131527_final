@@ -28,9 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.btnExport = new System.Windows.Forms.Button();
             this.btnImport = new System.Windows.Forms.Button();
@@ -82,6 +82,13 @@
             this.dataGridViewTextBoxColumn8 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewButtonColumn1 = new System.Windows.Forms.DataGridViewButtonColumn();
             this.groupBox8 = new System.Windows.Forms.GroupBox();
+            this.dtpPlanEnd = new System.Windows.Forms.DateTimePicker();
+            this.label18 = new System.Windows.Forms.Label();
+            this.dtpPlanStart = new System.Windows.Forms.DateTimePicker();
+            this.label17 = new System.Windows.Forms.Label();
+            this.label16 = new System.Windows.Forms.Label();
+            this.label15 = new System.Windows.Forms.Label();
+            this.nudPlanDay = new System.Windows.Forms.NumericUpDown();
             this.label12 = new System.Windows.Forms.Label();
             this.txtPlanNote = new System.Windows.Forms.TextBox();
             this.label13 = new System.Windows.Forms.Label();
@@ -97,8 +104,6 @@
             this.chartPie = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-            this.nudPlanDay = new System.Windows.Forms.NumericUpDown();
-            this.label15 = new System.Windows.Forms.Label();
             this.tabPage2.SuspendLayout();
             this.groupBox5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvHistory)).BeginInit();
@@ -112,9 +117,9 @@
             this.tabPage3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvPlan)).BeginInit();
             this.groupBox8.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudPlanDay)).BeginInit();
             this.groupBox6.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.chartPie)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.nudPlanDay)).BeginInit();
             this.SuspendLayout();
             // 
             // tabPage2
@@ -541,7 +546,6 @@
             this.lblExpense.TabIndex = 1;
             this.lblExpense.Text = "-$0,000";
             this.lblExpense.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            this.lblExpense.Click += new System.EventHandler(this.lblExpense_Click);
             // 
             // groupBox1
             // 
@@ -658,6 +662,11 @@
             // 
             // groupBox8
             // 
+            this.groupBox8.Controls.Add(this.dtpPlanEnd);
+            this.groupBox8.Controls.Add(this.label18);
+            this.groupBox8.Controls.Add(this.dtpPlanStart);
+            this.groupBox8.Controls.Add(this.label17);
+            this.groupBox8.Controls.Add(this.label16);
             this.groupBox8.Controls.Add(this.label15);
             this.groupBox8.Controls.Add(this.nudPlanDay);
             this.groupBox8.Controls.Add(this.label12);
@@ -677,6 +686,63 @@
             this.groupBox8.TabIndex = 2;
             this.groupBox8.TabStop = false;
             this.groupBox8.Text = "新增每月固定計畫交易";
+            // 
+            // dtpPlanEnd
+            // 
+            this.dtpPlanEnd.Location = new System.Drawing.Point(205, 296);
+            this.dtpPlanEnd.Name = "dtpPlanEnd";
+            this.dtpPlanEnd.Size = new System.Drawing.Size(296, 50);
+            this.dtpPlanEnd.TabIndex = 31;
+            // 
+            // label18
+            // 
+            this.label18.AutoSize = true;
+            this.label18.Location = new System.Drawing.Point(17, 296);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(177, 40);
+            this.label18.TabIndex = 35;
+            this.label18.Text = "結束月份：";
+            // 
+            // dtpPlanStart
+            // 
+            this.dtpPlanStart.Location = new System.Drawing.Point(205, 221);
+            this.dtpPlanStart.Name = "dtpPlanStart";
+            this.dtpPlanStart.Size = new System.Drawing.Size(296, 50);
+            this.dtpPlanStart.TabIndex = 31;
+            // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(17, 221);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(177, 40);
+            this.label17.TabIndex = 33;
+            this.label17.Text = "開始月份：";
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Location = new System.Drawing.Point(335, 140);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(113, 40);
+            this.label16.TabIndex = 32;
+            this.label16.Text = "日扣款";
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Location = new System.Drawing.Point(17, 140);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(145, 40);
+            this.label15.TabIndex = 28;
+            this.label15.Text = "每月的第";
+            // 
+            // nudPlanDay
+            // 
+            this.nudPlanDay.Location = new System.Drawing.Point(196, 138);
+            this.nudPlanDay.Name = "nudPlanDay";
+            this.nudPlanDay.Size = new System.Drawing.Size(120, 50);
+            this.nudPlanDay.TabIndex = 31;
             // 
             // label12
             // 
@@ -698,7 +764,7 @@
             // label13
             // 
             this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(367, 161);
+            this.label13.Location = new System.Drawing.Point(373, 162);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(0, 40);
             this.label13.TabIndex = 24;
@@ -770,7 +836,7 @@
             this.cmbPlanType.Items.AddRange(new object[] {
             "固定收入",
             "固定支出"});
-            this.cmbPlanType.Location = new System.Drawing.Point(120, 64);
+            this.cmbPlanType.Location = new System.Drawing.Point(135, 64);
             this.cmbPlanType.Name = "cmbPlanType";
             this.cmbPlanType.Size = new System.Drawing.Size(247, 48);
             this.cmbPlanType.TabIndex = 18;
@@ -778,7 +844,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(11, 67);
+            this.label2.Location = new System.Drawing.Point(17, 67);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(113, 40);
             this.label2.TabIndex = 17;
@@ -786,7 +852,7 @@
             // 
             // btnPlanAdd
             // 
-            this.btnPlanAdd.Location = new System.Drawing.Point(1115, 281);
+            this.btnPlanAdd.Location = new System.Drawing.Point(1115, 295);
             this.btnPlanAdd.Name = "btnPlanAdd";
             this.btnPlanAdd.Size = new System.Drawing.Size(254, 58);
             this.btnPlanAdd.TabIndex = 0;
@@ -806,19 +872,19 @@
             // 
             // chartPie
             // 
-            chartArea3.Name = "ChartArea1";
-            this.chartPie.ChartAreas.Add(chartArea3);
-            legend3.Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Top;
-            legend3.Name = "Legend1";
-            this.chartPie.Legends.Add(legend3);
+            chartArea1.Name = "ChartArea1";
+            this.chartPie.ChartAreas.Add(chartArea1);
+            legend1.Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Top;
+            legend1.Name = "Legend1";
+            this.chartPie.Legends.Add(legend1);
             this.chartPie.Location = new System.Drawing.Point(24, 49);
             this.chartPie.Name = "chartPie";
-            series3.ChartArea = "ChartArea1";
-            series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Pie;
-            series3.Legend = "Legend1";
-            series3.Name = "Series1";
-            series3.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.SeaGreen;
-            this.chartPie.Series.Add(series3);
+            series1.ChartArea = "ChartArea1";
+            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Pie;
+            series1.Legend = "Legend1";
+            series1.Name = "Series1";
+            series1.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.SeaGreen;
+            this.chartPie.Series.Add(series1);
             this.chartPie.Size = new System.Drawing.Size(461, 386);
             this.chartPie.TabIndex = 0;
             this.chartPie.Text = "chart1";
@@ -826,22 +892,6 @@
             // openFileDialog1
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
-            // 
-            // nudPlanDay
-            // 
-            this.nudPlanDay.Location = new System.Drawing.Point(200, 137);
-            this.nudPlanDay.Name = "nudPlanDay";
-            this.nudPlanDay.Size = new System.Drawing.Size(120, 50);
-            this.nudPlanDay.TabIndex = 27;
-            // 
-            // label15
-            // 
-            this.label15.AutoSize = true;
-            this.label15.Location = new System.Drawing.Point(17, 139);
-            this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(177, 40);
-            this.label15.TabIndex = 28;
-            this.label15.Text = "每月的第：";
             // 
             // Form1
             // 
@@ -873,9 +923,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvPlan)).EndInit();
             this.groupBox8.ResumeLayout(false);
             this.groupBox8.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudPlanDay)).EndInit();
             this.groupBox6.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.chartPie)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.nudPlanDay)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -950,6 +1000,11 @@
         private System.Windows.Forms.DataGridViewButtonColumn dataGridViewButtonColumn1;
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.NumericUpDown nudPlanDay;
+        private System.Windows.Forms.DateTimePicker dtpPlanEnd;
+        private System.Windows.Forms.Label label18;
+        private System.Windows.Forms.DateTimePicker dtpPlanStart;
+        private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.Label label16;
     }
 }
 

@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 
@@ -15,9 +12,7 @@ namespace s1131527_final
     public partial class Form1 : Form
     {
         private List<Record> allRecords = new List<Record>();
-
         private List<PlanTransaction> planTransactions = new List<PlanTransaction>();
-
         private string defaultFilePath = Path.Combine(Application.StartupPath, "data.txt");
         private string planFilePath = Path.Combine(Application.StartupPath, "plan_data.txt");
 
@@ -30,12 +25,19 @@ namespace s1131527_final
         {
             cmbCategory.SelectedIndex = 0;
             cmbFilterCategory.SelectedIndex = 0;
+            cmbPlanType.SelectedIndex = 0;
+            cmbPlanCategory.SelectedIndex = 0;
 
-            if (cmbPlanType != null && cmbPlanType.Items.Count > 0) cmbPlanType.SelectedIndex = 0;
-            if (cmbPlanCategory != null && cmbPlanCategory.Items.Count > 0) cmbPlanCategory.SelectedIndex = 0;
+            nudPlanDay.Minimum = 1;
+            nudPlanDay.Maximum = 31;
+            nudPlanDay.Value = 1;
+
+            dgvQuick.RowHeadersVisible = false;
+            dgvHistory.RowHeadersVisible = false;
+            if (dgvPlan != null) dgvPlan.RowHeadersVisible = false;
 
             LoadDataFromFile(defaultFilePath);
-            LoadPlanFromFile(planFilePath); 
+            LoadPlanFromFile(planFilePath);
             UpdateAllUI();
         }
 
@@ -71,9 +73,11 @@ namespace s1131527_final
                 UpdateAllUI();
                 MessageBox.Show("記帳成功！", "系統提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-            finally { btnAdd.Enabled = true; }
+            finally
+            {
+                btnAdd.Enabled = true;
+            }
         }
-
 
         private void btnPlanAdd_Click(object sender, EventArgs e)
         {
@@ -95,19 +99,28 @@ namespace s1131527_final
                 return;
             }
 
+            if (dtpPlanStart.Value.Date > dtpPlanEnd.Value.Date)
+            {
+                MessageBox.Show("開始日期不能晚於結束日期！", "輸入錯誤", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             PlanTransaction newPlan = new PlanTransaction
             {
                 Type = cmbPlanType.SelectedItem.ToString(),
                 Category = cmbPlanCategory.SelectedItem.ToString(),
                 Amount = amount,
-                Note = txtPlanNote.Text.Trim()
+                Note = txtPlanNote.Text.Trim(),
+                Day = (int)nudPlanDay.Value,
+                StartDate = dtpPlanStart.Value.Date,
+                EndDate = dtpPlanEnd.Value.Date
             };
 
             planTransactions.Add(newPlan);
-            SavePlanToFile(planFilePath); 
+            SavePlanToFile(planFilePath);
             txtPlanAmount.Clear();
             txtPlanNote.Clear();
-            UpdateAllUI(); 
+            UpdateAllUI();
             MessageBox.Show("每月固定計畫新增成功！", "系統提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
@@ -118,17 +131,12 @@ namespace s1131527_final
                 DialogResult dialog = MessageBox.Show("確定要刪除這筆每月固定計畫嗎？", "刪除確認", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (dialog == DialogResult.Yes)
                 {
-                    string type = dgvPlan.Rows[e.RowIndex].Cells[0].Value.ToString();
-                    string category = dgvPlan.Rows[e.RowIndex].Cells[1].Value.ToString();
-                    string amountStr = dgvPlan.Rows[e.RowIndex].Cells[2].Value.ToString().Replace("$", "").Replace(",", "");
-                    int amount = int.Parse(amountStr);
-                    string note = dgvPlan.Rows[e.RowIndex].Cells[3].Value.ToString();
-
-                    var target = planTransactions.FirstOrDefault(p => p.Type == type && p.Category == category && p.Amount == amount && p.Note == note);
+                    Guid targetId = (Guid)dgvPlan.Rows[e.RowIndex].Tag;
+                    var target = planTransactions.FirstOrDefault(p => p.Id == targetId);
                     if (target != null)
                     {
                         planTransactions.Remove(target);
-                        SavePlanToFile(planFilePath); 
+                        SavePlanToFile(planFilePath);
                         UpdateAllUI();
                         MessageBox.Show("固定計畫已成功刪除！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
@@ -138,24 +146,43 @@ namespace s1131527_final
 
         private void UpdateAllUI()
         {
-            var thisMonth = allRecords.Where(r =>
-              r.Date.Year == DateTime.Today.Year &&
-              r.Date.Month == DateTime.Today.Month).ToList();
-            int totalIncome = thisMonth.Where(r => r.Category == "收入").Sum(r => r.Amount);
-            int totalExpense = thisMonth.Where(r => r.Category != "收入").Sum(r => r.Amount);
+            DateTime targetMonthStart = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            DateTime targetMonthEnd = targetMonthStart.AddMonths(1).AddDays(-1);
+
+            var thisMonthRecords = allRecords.Where(r =>
+                r.Date.Year == DateTime.Today.Year &&
+                r.Date.Month == DateTime.Today.Month).ToList();
+
+            int totalIncome = thisMonthRecords.Where(r => r.Category == "收入").Sum(r => r.Amount);
+            int totalExpense = thisMonthRecords.Where(r => r.Category != "收入").Sum(r => r.Amount);
+
+            foreach (var plan in planTransactions)
+            {
+                if (plan.StartDate <= targetMonthEnd && plan.EndDate >= targetMonthStart)
+                {
+                    int dayInPlan = Math.Min(plan.Day, DateTime.DaysInMonth(DateTime.Today.Year, DateTime.Today.Month));
+                    DateTime actionDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, dayInPlan);
+
+                    if (actionDate >= plan.StartDate && actionDate <= plan.EndDate)
+                    {
+                        if (plan.Type == "固定收入")
+                            totalIncome += plan.Amount;
+                        else
+                            totalExpense += plan.Amount;
+                    }
+                }
+            }
+
             int balance = totalIncome - totalExpense;
 
             lblIncome.Text = $"+ ${totalIncome:N0}";
             lblExpense.Text = $"- ${totalExpense:N0}";
             lblBalance.Text = $"${balance:N0}";
-
-            lblBalance.ForeColor = balance >= 0 ? System.Drawing.Color.Black : System.Drawing.Color.Red;
+            lblBalance.ForeColor = balance >= 0 ? Color.Black : Color.Red;
 
             RefreshDataGridView(dgvQuick, allRecords.OrderByDescending(r => r.Date).Take(10).ToList());
             RefreshDataGridView(dgvHistory, allRecords);
-
             RefreshPlanDataGridView();
-
             RenderCharts();
         }
 
@@ -163,26 +190,29 @@ namespace s1131527_final
         {
             if (dgv == null) return;
             dgv.Rows.Clear();
+            bool hasDeleteCol = dgv.Columns.Cast<DataGridViewColumn>().Any(c => c.HeaderText == "刪除");
             foreach (var r in records)
             {
-                if (dgv.Columns.Contains("colDelete") || dgv.Columns.Cast<DataGridViewColumn>().Any(c => c.HeaderText == "刪除"))
-                {
-                    dgv.Rows.Add(r.Date.ToString("yyyy/MM/dd"), r.Category, $"${r.Amount:N0}", r.Note, "❌ 刪除");
-                }
-                else
-                {
-                    dgv.Rows.Add(r.Date.ToString("yyyy/MM/dd"), r.Category, $"${r.Amount:N0}", r.Note);
-                }
+                int rowIndex = hasDeleteCol
+                    ? dgv.Rows.Add(r.Date.ToString("yyyy/MM/dd"), r.Category, $"${r.Amount:N0}", r.Note, "刪除")
+                    : dgv.Rows.Add(r.Date.ToString("yyyy/MM/dd"), r.Category, $"${r.Amount:N0}", r.Note);
+                dgv.Rows[rowIndex].Tag = r.Id;
             }
         }
 
         private void RefreshPlanDataGridView()
         {
-            if (dgvPlan == null) return;
+            if(dgvPlan == null) return;
             dgvPlan.Rows.Clear();
             foreach (var p in planTransactions)
             {
-                dgvPlan.Rows.Add(p.Type, p.Category, $"${p.Amount:N0}", p.Note, "❌ 刪除");
+                int rowIndex = dgvPlan.Rows.Add(
+                    p.Type,
+                    p.Category,
+                    $"${p.Amount:N0}",
+                    p.Note,
+                    "刪除");
+                dgvPlan.Rows[rowIndex].Tag = p.Id;
             }
         }
 
@@ -196,14 +226,10 @@ namespace s1131527_final
             var filtered = allRecords.Where(r => r.Date >= startDate && r.Date <= endDate).ToList();
 
             if (selectedCategory != "全部")
-            {
                 filtered = filtered.Where(r => r.Category == selectedCategory).ToList();
-            }
 
             if (!string.IsNullOrEmpty(searchNote))
-            {
                 filtered = filtered.Where(r => r.Note.ToLower().Contains(searchNote)).ToList();
-            }
 
             RefreshDataGridView(dgvHistory, filtered);
         }
@@ -224,13 +250,8 @@ namespace s1131527_final
                 DialogResult dialog = MessageBox.Show("確定要刪除這筆紀錄嗎？", "刪除確認", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (dialog == DialogResult.Yes)
                 {
-                    string dateStr = dgvHistory.Rows[e.RowIndex].Cells[0].Value.ToString();
-                    string category = dgvHistory.Rows[e.RowIndex].Cells[1].Value.ToString();
-                    string amountStr = dgvHistory.Rows[e.RowIndex].Cells[2].Value.ToString().Replace("$", "").Replace(",", "");
-                    int amount = int.Parse(amountStr);
-                    string note = dgvHistory.Rows[e.RowIndex].Cells[3].Value.ToString();
-
-                    var target = allRecords.FirstOrDefault(r => r.Date.ToString("yyyy/MM/dd") == dateStr && r.Category == category && r.Amount == amount && r.Note == note);
+                    Guid targetId = (Guid)dgvHistory.Rows[e.RowIndex].Tag;
+                    var target = allRecords.FirstOrDefault(r => r.Id == targetId);
                     if (target != null)
                     {
                         allRecords.Remove(target);
@@ -246,12 +267,10 @@ namespace s1131527_final
         {
             try
             {
-                using (StreamWriter sw = new StreamWriter(filePath, false, System.Text.Encoding.UTF8))
+                using (StreamWriter sw = new StreamWriter(filePath, false, Encoding.UTF8))
                 {
                     foreach (var r in allRecords)
-                    {
-                        sw.WriteLine($"{r.Date:yyyy-MM-dd},{r.Category},{r.Amount},{r.Note}");
-                    }
+                        sw.WriteLine($"{r.Id},{r.Date:yyyy-MM-dd},{r.Category},{r.Amount},{r.Note}");
                 }
             }
             catch (Exception ex)
@@ -266,21 +285,20 @@ namespace s1131527_final
             try
             {
                 allRecords.Clear();
-                string[] lines = File.ReadAllLines(filePath, System.Text.Encoding.UTF8);
-                foreach (string line in lines)
+                foreach (string line in File.ReadAllLines(filePath, Encoding.UTF8))
                 {
                     if (string.IsNullOrWhiteSpace(line)) continue;
                     string[] parts = line.Split(',');
-                    if (parts.Length >= 4)
+                    if (parts.Length >= 5)
                     {
-                        Record r = new Record
+                        allRecords.Add(new Record
                         {
-                            Date = DateTime.Parse(parts[0]),
-                            Category = parts[1],
-                            Amount = int.Parse(parts[2]),
-                            Note = parts[3]
-                        };
-                        allRecords.Add(r);
+                            Id = Guid.TryParse(parts[0], out Guid id) ? id : Guid.NewGuid(),
+                            Date = DateTime.Parse(parts[1]),
+                            Category = parts[2],
+                            Amount = int.Parse(parts[3]),
+                            Note = string.Join(",", parts.Skip(4))
+                        });
                     }
                 }
             }
@@ -297,37 +315,37 @@ namespace s1131527_final
                 using (StreamWriter sw = new StreamWriter(filePath, false, Encoding.UTF8))
                 {
                     foreach (var p in planTransactions)
-                    {
-                        sw.WriteLine($"{p.Type},{p.Category},{p.Amount},{p.Note}");
-                    }
+                        sw.WriteLine($"{p.Id},{p.Type},{p.Category},{p.Amount},{p.Day},{p.StartDate:yyyy-MM-dd},{p.EndDate:yyyy-MM-dd},{p.Note}");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"計檔案劃存檔失敗：{ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"計劃存檔失敗：{ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        // 💡 新增：每月固定計畫檔案讀取功能
         private void LoadPlanFromFile(string filePath)
         {
             if (!File.Exists(filePath)) return;
             try
             {
                 planTransactions.Clear();
-                string[] lines = File.ReadAllLines(filePath, Encoding.UTF8);
-                foreach (string line in lines)
+                foreach (string line in File.ReadAllLines(filePath, Encoding.UTF8))
                 {
                     if (string.IsNullOrWhiteSpace(line)) continue;
                     string[] parts = line.Split(',');
-                    if (parts.Length >= 4)
+                    if (parts.Length >= 8)
                     {
                         planTransactions.Add(new PlanTransaction
                         {
-                            Type = parts[0],
-                            Category = parts[1],
-                            Amount = int.Parse(parts[2]),
-                            Note = parts[3]
+                            Id = Guid.TryParse(parts[0], out Guid id) ? id : Guid.NewGuid(),
+                            Type = parts[1],
+                            Category = parts[2],
+                            Amount = int.Parse(parts[3]),
+                            Day = int.Parse(parts[4]),
+                            StartDate = DateTime.Parse(parts[5]),
+                            EndDate = DateTime.Parse(parts[6]),
+                            Note = string.Join(",", parts.Skip(7))
                         });
                     }
                 }
@@ -363,8 +381,6 @@ namespace s1131527_final
             }
         }
 
-        private void lblExpense_Click(object sender, EventArgs e) { }
-
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (MessageBox.Show("確定要離開記帳系統？", "確認", MessageBoxButtons.YesNo) == DialogResult.No)
@@ -378,16 +394,37 @@ namespace s1131527_final
             chartPie.Series.Clear();
             chartPie.Titles.Clear();
 
-            Title title = chartPie.Titles.Add("本月支出分類比例");
+            var title = chartPie.Titles.Add("本月支出分類比例");
             title.Font = new Font("Microsoft JhengHei", 12, FontStyle.Bold);
 
-            var thisMonthExpenses = allRecords
-                .Where(r => r.Date.Year == DateTime.Today.Year && r.Date.Month == DateTime.Today.Month && r.Category != "收入")
-                .GroupBy(r => r.Category)
-                .Select(g => new { Category = g.Key, Total = g.Sum(r => r.Amount) })
-                .ToList();
+            DateTime targetMonthStart = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            DateTime targetMonthEnd = targetMonthStart.AddMonths(1).AddDays(-1);
 
-            if (thisMonthExpenses.Count == 0)
+            var categoryTotals = allRecords
+                .Where(r => r.Date.Year == DateTime.Today.Year &&
+                            r.Date.Month == DateTime.Today.Month &&
+                            r.Category != "收入")
+                .GroupBy(r => r.Category)
+                .ToDictionary(g => g.Key, g => g.Sum(r => r.Amount));
+
+            foreach (var plan in planTransactions)
+            {
+                if (plan.Type == "固定支出" && plan.StartDate <= targetMonthEnd && plan.EndDate >= targetMonthStart)
+                {
+                    int dayInPlan = Math.Min(plan.Day, DateTime.DaysInMonth(DateTime.Today.Year, DateTime.Today.Month));
+                    DateTime actionDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, dayInPlan);
+
+                    if (actionDate >= plan.StartDate && actionDate <= plan.EndDate)
+                    {
+                        if (categoryTotals.ContainsKey(plan.Category))
+                            categoryTotals[plan.Category] += plan.Amount;
+                        else
+                            categoryTotals[plan.Category] = plan.Amount;
+                    }
+                }
+            }
+
+            if (categoryTotals.Count == 0)
             {
                 chartPie.Titles.Add("本月尚無支出紀錄");
                 return;
@@ -396,18 +433,15 @@ namespace s1131527_final
             Series pieSeries = new Series("ExpensePie")
             {
                 ChartType = SeriesChartType.Pie,
-                Font = new Font("Microsoft JhengHei", 10, FontStyle.Regular)
+                Font = new Font("Microsoft JhengHei", 10, FontStyle.Regular),
+                IsValueShownAsLabel = true,
+                Label = "#VALX #PERCENT{P1}"
             };
-
-            foreach (var item in thisMonthExpenses)
-            {
-                pieSeries.Points.AddXY(item.Category, item.Total);
-            }
-
-            pieSeries.IsValueShownAsLabel = true;
-            pieSeries.Label = "#VALX #PERCENT{P1}";
             pieSeries["PieLabelStyle"] = "Outside";
             pieSeries["PieLineColor"] = "Black";
+
+            foreach (var item in categoryTotals)
+                pieSeries.Points.AddXY(item.Key, item.Value);
 
             chartPie.Series.Add(pieSeries);
         }
@@ -415,6 +449,7 @@ namespace s1131527_final
 
     public class Record
     {
+        public Guid Id { get; set; } = Guid.NewGuid();
         public DateTime Date { get; set; }
         public string Category { get; set; }
         public int Amount { get; set; }
@@ -423,9 +458,13 @@ namespace s1131527_final
 
     public class PlanTransaction
     {
-        public string Type { get; set; }      
-        public string Category { get; set; }  
-        public int Amount { get; set; }       
-        public string Note { get; set; }       
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public string Type { get; set; }
+        public string Category { get; set; }
+        public int Amount { get; set; }
+        public string Note { get; set; }
+        public int Day { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
     }
 }
