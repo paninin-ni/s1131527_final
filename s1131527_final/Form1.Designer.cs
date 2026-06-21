@@ -28,6 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.btnExport = new System.Windows.Forms.Button();
             this.btnImport = new System.Windows.Forms.Button();
@@ -71,6 +74,21 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.lblIncome = new System.Windows.Forms.Label();
             this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.groupBox8 = new System.Windows.Forms.GroupBox();
+            this.label12 = new System.Windows.Forms.Label();
+            this.txtPlanNote = new System.Windows.Forms.TextBox();
+            this.label13 = new System.Windows.Forms.Label();
+            this.cmbPlanCategory = new System.Windows.Forms.ComboBox();
+            this.label14 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.txtPlanAmount = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.cmbPlanType = new System.Windows.Forms.ComboBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.btnPlanAdd = new System.Windows.Forms.Button();
+            this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.chartPie = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.tabPage2.SuspendLayout();
@@ -83,10 +101,15 @@
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.tabControl1.SuspendLayout();
+            this.tabPage3.SuspendLayout();
+            this.groupBox8.SuspendLayout();
+            this.groupBox6.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.chartPie)).BeginInit();
             this.SuspendLayout();
             // 
             // tabPage2
             // 
+            this.tabPage2.BackColor = System.Drawing.SystemColors.Control;
             this.tabPage2.Controls.Add(this.btnExport);
             this.tabPage2.Controls.Add(this.btnImport);
             this.tabPage2.Controls.Add(this.groupBox5);
@@ -97,7 +120,6 @@
             this.tabPage2.Size = new System.Drawing.Size(1468, 892);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "歷史明細";
-            this.tabPage2.UseVisualStyleBackColor = true;
             // 
             // btnExport
             // 
@@ -256,6 +278,7 @@
             this.dgvHistory.RowTemplate.Height = 38;
             this.dgvHistory.Size = new System.Drawing.Size(1387, 478);
             this.dgvHistory.TabIndex = 4;
+            this.dgvHistory.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvHistory_CellContentClick);
             // 
             // dataGridViewTextBoxColumn1
             // 
@@ -296,6 +319,7 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.BackColor = System.Drawing.SystemColors.Control;
             this.tabPage1.Controls.Add(this.dgvQuick);
             this.tabPage1.Controls.Add(this.groupBox4);
             this.tabPage1.Controls.Add(this.groupBox3);
@@ -307,7 +331,6 @@
             this.tabPage1.Size = new System.Drawing.Size(1468, 892);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "快速記帳";
-            this.tabPage1.UseVisualStyleBackColor = true;
             // 
             // dgvQuick
             // 
@@ -477,11 +500,13 @@
             // lblBalance
             // 
             this.lblBalance.AutoSize = true;
-            this.lblBalance.Location = new System.Drawing.Point(170, 66);
+            this.lblBalance.Font = new System.Drawing.Font("Microsoft JhengHei", 16.125F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.lblBalance.Location = new System.Drawing.Point(24, 55);
             this.lblBalance.Name = "lblBalance";
-            this.lblBalance.Size = new System.Drawing.Size(119, 40);
+            this.lblBalance.Size = new System.Drawing.Size(158, 54);
             this.lblBalance.TabIndex = 2;
             this.lblBalance.Text = "$0,000";
+            this.lblBalance.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // groupBox2
             // 
@@ -497,11 +522,14 @@
             // lblExpense
             // 
             this.lblExpense.AutoSize = true;
-            this.lblExpense.Location = new System.Drawing.Point(165, 66);
+            this.lblExpense.Font = new System.Drawing.Font("Microsoft JhengHei", 16.125F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.lblExpense.Location = new System.Drawing.Point(24, 55);
             this.lblExpense.Name = "lblExpense";
-            this.lblExpense.Size = new System.Drawing.Size(133, 40);
+            this.lblExpense.Size = new System.Drawing.Size(177, 54);
             this.lblExpense.TabIndex = 1;
             this.lblExpense.Text = "-$0,000";
+            this.lblExpense.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            this.lblExpense.Click += new System.EventHandler(this.lblExpense_Click);
             // 
             // groupBox1
             // 
@@ -517,11 +545,13 @@
             // lblIncome
             // 
             this.lblIncome.AutoSize = true;
-            this.lblIncome.Location = new System.Drawing.Point(156, 66);
+            this.lblIncome.Font = new System.Drawing.Font("Microsoft JhengHei", 16.125F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.lblIncome.Location = new System.Drawing.Point(24, 55);
             this.lblIncome.Name = "lblIncome";
-            this.lblIncome.Size = new System.Drawing.Size(143, 40);
+            this.lblIncome.Size = new System.Drawing.Size(190, 54);
             this.lblIncome.TabIndex = 0;
             this.lblIncome.Text = "+$0,000";
+            this.lblIncome.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // tabControl1
             // 
@@ -530,6 +560,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
+            this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
@@ -537,6 +568,182 @@
             this.tabControl1.Size = new System.Drawing.Size(1484, 954);
             this.tabControl1.SizeMode = System.Windows.Forms.TabSizeMode.Fixed;
             this.tabControl1.TabIndex = 0;
+            // 
+            // tabPage3
+            // 
+            this.tabPage3.BackColor = System.Drawing.SystemColors.ButtonFace;
+            this.tabPage3.Controls.Add(this.groupBox8);
+            this.tabPage3.Controls.Add(this.groupBox6);
+            this.tabPage3.Location = new System.Drawing.Point(8, 54);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage3.Size = new System.Drawing.Size(1468, 892);
+            this.tabPage3.TabIndex = 2;
+            this.tabPage3.Text = "統計計畫";
+            // 
+            // groupBox8
+            // 
+            this.groupBox8.Controls.Add(this.label12);
+            this.groupBox8.Controls.Add(this.txtPlanNote);
+            this.groupBox8.Controls.Add(this.label13);
+            this.groupBox8.Controls.Add(this.cmbPlanCategory);
+            this.groupBox8.Controls.Add(this.label14);
+            this.groupBox8.Controls.Add(this.label3);
+            this.groupBox8.Controls.Add(this.txtPlanAmount);
+            this.groupBox8.Controls.Add(this.label1);
+            this.groupBox8.Controls.Add(this.cmbPlanType);
+            this.groupBox8.Controls.Add(this.label2);
+            this.groupBox8.Controls.Add(this.btnPlanAdd);
+            this.groupBox8.Location = new System.Drawing.Point(28, 537);
+            this.groupBox8.Name = "groupBox8";
+            this.groupBox8.Size = new System.Drawing.Size(1393, 316);
+            this.groupBox8.TabIndex = 2;
+            this.groupBox8.TabStop = false;
+            this.groupBox8.Text = "新增每月固定計畫交易";
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(521, 161);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(113, 40);
+            this.label12.TabIndex = 26;
+            this.label12.Text = "備註：";
+            // 
+            // txtPlanNote
+            // 
+            this.txtPlanNote.Location = new System.Drawing.Point(640, 155);
+            this.txtPlanNote.Multiline = true;
+            this.txtPlanNote.Name = "txtPlanNote";
+            this.txtPlanNote.Size = new System.Drawing.Size(489, 50);
+            this.txtPlanNote.TabIndex = 25;
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(367, 161);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(0, 40);
+            this.label13.TabIndex = 24;
+            // 
+            // cmbPlanCategory
+            // 
+            this.cmbPlanCategory.AutoCompleteCustomSource.AddRange(new string[] {
+            "食",
+            "衣",
+            "住",
+            "行",
+            "育",
+            "樂"});
+            this.cmbPlanCategory.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbPlanCategory.FormattingEnabled = true;
+            this.cmbPlanCategory.Items.AddRange(new object[] {
+            "食",
+            "衣",
+            "住",
+            "行",
+            "育",
+            "樂",
+            "收入"});
+            this.cmbPlanCategory.Location = new System.Drawing.Point(214, 155);
+            this.cmbPlanCategory.Name = "cmbPlanCategory";
+            this.cmbPlanCategory.Size = new System.Drawing.Size(284, 48);
+            this.cmbPlanCategory.TabIndex = 23;
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(31, 158);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(177, 40);
+            this.label14.TabIndex = 22;
+            this.label14.Text = "交易分類：";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(521, 80);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(113, 40);
+            this.label3.TabIndex = 21;
+            this.label3.Text = "金額：";
+            // 
+            // txtPlanAmount
+            // 
+            this.txtPlanAmount.Location = new System.Drawing.Point(640, 74);
+            this.txtPlanAmount.Name = "txtPlanAmount";
+            this.txtPlanAmount.Size = new System.Drawing.Size(489, 50);
+            this.txtPlanAmount.TabIndex = 20;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(367, 80);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(0, 40);
+            this.label1.TabIndex = 19;
+            // 
+            // cmbPlanType
+            // 
+            this.cmbPlanType.AutoCompleteCustomSource.AddRange(new string[] {
+            "固定支出",
+            "固定收入"});
+            this.cmbPlanType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbPlanType.FormattingEnabled = true;
+            this.cmbPlanType.Items.AddRange(new object[] {
+            "固定收入",
+            "固定支出"});
+            this.cmbPlanType.Location = new System.Drawing.Point(214, 74);
+            this.cmbPlanType.Name = "cmbPlanType";
+            this.cmbPlanType.Size = new System.Drawing.Size(284, 48);
+            this.cmbPlanType.TabIndex = 18;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(31, 77);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(177, 40);
+            this.label2.TabIndex = 17;
+            this.label2.Text = "交易類型：";
+            // 
+            // btnPlanAdd
+            // 
+            this.btnPlanAdd.Location = new System.Drawing.Point(979, 227);
+            this.btnPlanAdd.Name = "btnPlanAdd";
+            this.btnPlanAdd.Size = new System.Drawing.Size(382, 58);
+            this.btnPlanAdd.TabIndex = 0;
+            this.btnPlanAdd.Text = "新增計畫交易";
+            this.btnPlanAdd.UseVisualStyleBackColor = true;
+            // 
+            // groupBox6
+            // 
+            this.groupBox6.Controls.Add(this.chartPie);
+            this.groupBox6.Location = new System.Drawing.Point(28, 23);
+            this.groupBox6.Name = "groupBox6";
+            this.groupBox6.Size = new System.Drawing.Size(542, 508);
+            this.groupBox6.TabIndex = 0;
+            this.groupBox6.TabStop = false;
+            this.groupBox6.Text = "本月支出分析";
+            // 
+            // chartPie
+            // 
+            chartArea1.Name = "ChartArea1";
+            this.chartPie.ChartAreas.Add(chartArea1);
+            legend1.Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Top;
+            legend1.Name = "Legend1";
+            this.chartPie.Legends.Add(legend1);
+            this.chartPie.Location = new System.Drawing.Point(24, 49);
+            this.chartPie.Name = "chartPie";
+            series1.ChartArea = "ChartArea1";
+            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Pie;
+            series1.Legend = "Legend1";
+            series1.Name = "Series1";
+            series1.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.SeaGreen;
+            this.chartPie.Series.Add(series1);
+            this.chartPie.Size = new System.Drawing.Size(461, 424);
+            this.chartPie.TabIndex = 0;
+            this.chartPie.Text = "chart1";
             // 
             // openFileDialog1
             // 
@@ -551,6 +758,7 @@
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "個人記帳系統";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.tabPage2.ResumeLayout(false);
             this.groupBox5.ResumeLayout(false);
@@ -567,6 +775,11 @@
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.tabControl1.ResumeLayout(false);
+            this.tabPage3.ResumeLayout(false);
+            this.groupBox8.ResumeLayout(false);
+            this.groupBox8.PerformLayout();
+            this.groupBox6.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.chartPie)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -618,6 +831,21 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn3;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn4;
         private System.Windows.Forms.DataGridViewButtonColumn colDelete;
+        private System.Windows.Forms.TabPage tabPage3;
+        private System.Windows.Forms.GroupBox groupBox8;
+        private System.Windows.Forms.GroupBox groupBox6;
+        private System.Windows.Forms.DataVisualization.Charting.Chart chartPie;
+        private System.Windows.Forms.TextBox txtPlanAmount;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ComboBox cmbPlanType;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Button btnPlanAdd;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.TextBox txtPlanNote;
+        private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.ComboBox cmbPlanCategory;
+        private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.Label label3;
     }
 }
 

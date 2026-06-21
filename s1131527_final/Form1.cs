@@ -8,15 +8,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace s1131527_final
 {
     public partial class Form1 : Form
     {
-        // 儲存所有記帳紀錄的清單
         private List<Record> allRecords = new List<Record>();
 
-        // 預設的自動存檔路徑
         private string defaultFilePath = Path.Combine(Application.StartupPath, "data.txt");
 
         public Form1()
@@ -24,85 +23,74 @@ namespace s1131527_final
             InitializeComponent();
         }
 
-        // 視窗載入時觸發的事件
         private void Form1_Load(object sender, EventArgs e)
         {
-            // 1. 初始化分類下拉選單
-            cmbCategory.SelectedIndex = 0; // 預設選取第一個
+            cmbCategory.SelectedIndex = 0; 
             cmbFilterCategory.SelectedIndex = 0;
 
-            // 2. 自動讀取歷史資料
             LoadDataFromFile(defaultFilePath);
-
-            // 3. 更新畫面顯示
             UpdateAllUI();
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtAmount.Text))
-            {
-                MessageBox.Show("請輸入金額！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+            btnAdd.Enabled = false;
+            try {
+                if (string.IsNullOrWhiteSpace(txtAmount.Text))
+                {
+                    MessageBox.Show("請輸入金額！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (!int.TryParse(txtAmount.Text, out int amount) || amount <= 0)
+                {
+                    MessageBox.Show("金額必須是大於 0 的正整數！", "輸入錯誤", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                Record newRecord = new Record
+                {
+                    Date = dtpAdd.Value.Date,
+                    Category = cmbCategory.SelectedItem.ToString(),
+                    Amount = amount,
+                    Note = txtNote.Text.Trim()
+                };
+
+                allRecords.Add(newRecord);
+                SaveDataToFile(defaultFilePath);
+                txtAmount.Clear();
+                txtNote.Clear();
+                UpdateAllUI();
+                MessageBox.Show("記帳成功！", "系統提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-
-            if (!int.TryParse(txtAmount.Text, out int amount) || amount <= 0)
-            {
-                MessageBox.Show("金額必須是小於或等於 1 的正整數！", "輸入錯誤", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            // 建立新紀錄物件
-            Record newRecord = new Record
-            {
-                Date = dtpAdd.Value.Date,
-                Category = cmbCategory.SelectedItem.ToString(),
-                Amount = amount,
-                Note = txtNote.Text.Trim()
-            };
-
-            // 加入清單
-            allRecords.Add(newRecord);
-
-            // 自動存檔 (確保資料不遺失)
-            SaveDataToFile(defaultFilePath);
-
-            // 清空輸入欄位方便下一筆輸入
-            txtAmount.Clear();
-            txtNote.Clear();
-
-            // 更新所有介面
-            UpdateAllUI();
-            MessageBox.Show("記帳成功！", "系統提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            finally { btnAdd.Enabled = true; }
+         
         }
 
-        // 計算並更新上方儀表板（收入、支出、餘額）與表格
         private void UpdateAllUI()
         {
-            int totalIncome = allRecords.Where(r => r.Category == "收入").Sum(r => r.Amount);
-            int totalExpense = allRecords.Where(r => r.Category != "收入").Sum(r => r.Amount);
+            var thisMonth = allRecords.Where(r =>
+              r.Date.Year == DateTime.Today.Year &&
+              r.Date.Month == DateTime.Today.Month).ToList();
+            int totalIncome = thisMonth.Where(r => r.Category == "收入").Sum(r => r.Amount);
+            int totalExpense = thisMonth.Where(r => r.Category != "收入").Sum(r => r.Amount);
             int balance = totalIncome - totalExpense;
 
-            // 更新 Label 顯示
             lblIncome.Text = $"+ ${totalIncome:N0}";
             lblExpense.Text = $"- ${totalExpense:N0}";
             lblBalance.Text = $"${balance:N0}";
 
-            // 根據餘額正負變色
             lblBalance.ForeColor = balance >= 0 ? System.Drawing.Color.Black : System.Drawing.Color.Red;
 
-            // 重新整理兩個 DataGridView 的資料
             RefreshDataGridView(dgvQuick, allRecords.OrderByDescending(r => r.Date).Take(10).ToList()); // 首頁只顯示最新10筆
             RefreshDataGridView(dgvHistory, allRecords); // 歷史頁顯示全部
         }
 
-        // 將清單資料綁定/寫入至 DataGridView 的通用 Method
         private void RefreshDataGridView(DataGridView dgv, List<Record> records)
         {
             dgv.Rows.Clear();
             foreach (var r in records)
             {
-                // 注意：dgvHistory 最後一欄是刪除按鈕，底下的 Row 加上對應數值
                 if (dgv.Columns.Contains("colDelete") || dgv.Columns.Cast<DataGridViewColumn>().Any(c => c.HeaderText == "刪除"))
                 {
                     dgv.Rows.Add(r.Date.ToString("yyyy/MM/dd"), r.Category, $"${r.Amount:N0}", r.Note, "❌ 刪除");
@@ -121,7 +109,6 @@ namespace s1131527_final
             string selectedCategory = cmbFilterCategory.SelectedItem.ToString();
             string searchNote = txtSearchNote.Text.Trim().ToLower();
 
-            // LINQ 複合條件篩選
             var filtered = allRecords.Where(r => r.Date >= startDate && r.Date <= endDate).ToList();
 
             if (selectedCategory != "全部")
@@ -134,11 +121,9 @@ namespace s1131527_final
                 filtered = filtered.Where(r => r.Note.ToLower().Contains(searchNote)).ToList();
             }
 
-            // 將篩選結果灌入歷史明細表格
             RefreshDataGridView(dgvHistory, filtered);
         }
 
-        // 「🔄 重設」按鈕點擊事件
         private void btnReset_Click(object sender, EventArgs e)
         {
             dtpStart.Value = DateTime.Today;
@@ -148,38 +133,30 @@ namespace s1131527_final
             RefreshDataGridView(dgvHistory, allRecords);
         }
 
-        // 歷史明細表格內的「❌ 刪除」按鈕點擊事件 (CellContentClick)
         private void dgvHistory_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            // 確保點擊的是「刪除」那一整行的按鈕欄位，且不是標頭
             if (e.RowIndex >= 0 && dgvHistory.Columns[e.ColumnIndex].HeaderText == "刪除")
             {
                 DialogResult dialog = MessageBox.Show("確定要刪除這筆紀錄嗎？", "刪除確認", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (dialog == DialogResult.Yes)
                 {
-                    // 1. 取得要刪除的那筆資料特徵 (實務上建議用 ID，這裡用時間/分類/金額/備註比對)
                     string dateStr = dgvHistory.Rows[e.RowIndex].Cells[0].Value.ToString();
                     string category = dgvHistory.Rows[e.RowIndex].Cells[1].Value.ToString();
                     string amountStr = dgvHistory.Rows[e.RowIndex].Cells[2].Value.ToString().Replace("$", "").Replace(",", "");
                     int amount = int.Parse(amountStr);
                     string note = dgvHistory.Rows[e.RowIndex].Cells[3].Value.ToString();
 
-                    // 2. 從總清單尋找並移除
                     var target = allRecords.FirstOrDefault(r => r.Date.ToString("yyyy/MM/dd") == dateStr && r.Category == category && r.Amount == amount && r.Note == note);
                     if (target != null)
                     {
                         allRecords.Remove(target);
-                        SaveDataToFile(defaultFilePath); // 移除後同步存檔
-                        UpdateAllUI(); // 更新 UI
+                        SaveDataToFile(defaultFilePath); 
+                        UpdateAllUI(); 
                         MessageBox.Show("紀錄已成功刪除！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 }
             }
         }
-
-
-
-        // 存檔 (寫檔機制)：格式採用簡單的 CSV 逗號分隔格式
         private void SaveDataToFile(string filePath)
         {
             try
@@ -188,7 +165,6 @@ namespace s1131527_final
                 {
                     foreach (var r in allRecords)
                     {
-                        // 寫入格式：日期,分類,金額,備註
                         sw.WriteLine($"{r.Date:yyyy-MM-dd},{r.Category},{r.Amount},{r.Note}");
                     }
                 }
@@ -199,7 +175,6 @@ namespace s1131527_final
             }
         }
 
-        // 讀檔機制
         private void LoadDataFromFile(string filePath)
         {
             if (!File.Exists(filePath)) return;
@@ -231,7 +206,6 @@ namespace s1131527_final
             }
         }
 
-        // 「📥 匯入歷史帳目」按鈕
         private void btnImport_Click(object sender, EventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -239,13 +213,12 @@ namespace s1131527_final
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 LoadDataFromFile(openFileDialog.FileName);
-                SaveDataToFile(defaultFilePath); // 同步覆蓋預設預載檔
+                SaveDataToFile(defaultFilePath); 
                 UpdateAllUI();
                 MessageBox.Show("外部歷史帳目匯入成功！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
-        // 「📤 匯出資料備份」按鈕
         private void btnExport_Click(object sender, EventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
@@ -258,9 +231,76 @@ namespace s1131527_final
             }
         }
 
+        private void lblExpense_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (MessageBox.Show("確定要離開記帳系統？", "確認", MessageBoxButtons.YesNo) == DialogResult.No)
+                e.Cancel = true;
+        }
+
+        private void RenderCharts()
+        {
+            if (chartPie == null) return;
+
+            // 1. 初始化圖表
+            chartPie.Series.Clear();
+            chartPie.Titles.Clear();
+
+            // 設定大標題（自訂字型與大小）
+            Title title = chartPie.Titles.Add("本月支出分類比例");
+            title.Font = new Font("Microsoft JhengHei", 12, FontStyle.Bold);
+
+            // 2. 篩選本月支出資料（排除「收入」）
+            var thisMonthExpenses = allRecords
+                .Where(r => r.Date.Year == DateTime.Today.Year && r.Date.Month == DateTime.Today.Month && r.Category != "收入")
+                .GroupBy(r => r.Category)
+                .Select(g => new { Category = g.Key, Total = g.Sum(r => r.Amount) })
+                .ToList();
+
+            // 💡 防呆機制：如果本月完全沒有記任何一筆支出，就不要畫圖，改顯示提示文字
+            if (thisMonthExpenses.Count == 0)
+            {
+                chartPie.Titles.Add("本月尚無支出紀錄");
+                return;
+            }
+
+            // 3. 建立並設定 Pie Series
+            Series pieSeries = new Series("ExpensePie")
+            {
+                ChartType = SeriesChartType.Pie,
+                Font = new Font("Microsoft JhengHei", 10, FontStyle.Regular) // 設定扇形上文字的字型
+            };
+
+            // 4. 將資料灌入圖表
+            foreach (var item in thisMonthExpenses)
+            {
+                pieSeries.Points.AddXY(item.Category, item.Total);
+            }
+
+            // 5. 🌟 讓圓餅圖強大又美觀的關鍵設定 🌟
+
+            // 顯示標籤文字 (預設會顯示金額數字)
+            pieSeries.IsValueShownAsLabel = true;
+
+            // 改成顯示「百分比」而非單純數字 (例如：食 45%)
+            // #VALX 代表 X軸名稱(分類)，#PERCENT 代表該區塊所佔百分比
+            pieSeries.Label = "#VALX #PERCENT{P1}";
+
+            // 讓標籤字體彈出到圓餅圖外面（避免分類太多時，字體全部擠在圓餅圖裡面重疊）
+            pieSeries["PieLabelStyle"] = "Outside";
+
+            // 連接圓餅圖與外部文字的拉線顏色
+            pieSeries["PieLineColor"] = "Black";
+
+            // 把設定好的 Series 加回圖表
+            chartPie.Series.Add(pieSeries);
+        }
     }
 
-    // 儲存單筆記帳資料的類別結構
     public class Record
     {
         public DateTime Date { get; set; }
